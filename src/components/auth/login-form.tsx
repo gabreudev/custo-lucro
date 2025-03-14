@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { KeyIcon, Loader2Icon, MailIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { KeyIcon, Loader2Icon, MailIcon } from "lucide-react"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -39,30 +40,27 @@ export function LoginForm() {
     },
   })
 
-  async function onSubmit(data: LoginFormValues) {
+  async function onSubmit(values: LoginFormValues) {
     setIsLoading(true)
     setNotification({ type: null, message: "" })
 
     try {
-      // Aqui você implementaria a lógica de autenticação com Supabase
-      // Por exemplo:
-      // const { error } = await supabase.auth.signInWithPassword({
-      //   email: data.email,
-      //   password: data.password,
-      // })
+      const supabase = createClientComponentClient();
+      const {email, password} = values;
 
-      // Simulando um delay para demonstração
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
+      const { error,
+        data: {session}
+       } = await supabase.auth.signInWithPassword({
+        email, 
+        password
+      })
       setNotification({
         type: "success",
         message: "Login realizado com sucesso! Redirecionando...",
       })
+      
+      router.refresh()
 
-      // Redirecionar para o dashboard após login bem-sucedido
-      setTimeout(() => {
-        router.push("/user-app")
-      }, 1000)
     } catch (error) {
       console.error(error)
       setNotification({
